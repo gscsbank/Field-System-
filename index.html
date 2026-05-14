@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galapitiyagama Sanasa Bank - Field Operations</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Sinhala:wght@400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS (via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans Sinhala', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#4c1d95', // Deep Purple
+                        secondary: '#0f172a', // slate-900
+                        accent: '#f59e0b', // amber-500
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Dexie.js -->
+    <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- FileSaver.js for Backup -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- jsPDF & html2pdf -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Firebase SDK (v9 compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Firebase Configuration
+        window.firebaseConfig = {
+            apiKey: "AIzaSyD54LifWiJblQ-4qlu5qkQbHmT26XUu-_0",
+            authDomain: "loan-division-core-system.firebaseapp.com",
+            projectId: "loan-division-core-system",
+            storageBucket: "loan-division-core-system.firebasestorage.app",
+            messagingSenderId: "942364188990",
+            appId: "1:942364188990:web:e70312566f0b9051fd0c6f",
+            measurementId: "G-RGZDNLQ1Q1"
+        };
+
+        // Initialize Firebase
+        if (window.firebaseConfig.apiKey !== "YOUR_API_KEY") {
+            firebase.initializeApp(window.firebaseConfig);
+            window.fs = firebase.firestore();
+            window.auth = firebase.auth();
+            console.log("Firebase initialized successfully.");
+        } else {
+            console.warn("Firebase not configured. Cloud sync will be disabled.");
+        }
+    </script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body class="antialiased border-none">
+
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="fixed inset-0 z-[200] flex animate__animated animate__fadeIn">
+
+        <!-- LEFT PANEL: Dark Branding -->
+        <div
+            class="hidden md:flex flex-col items-center justify-center w-[45%] bg-[#0f172a] relative overflow-hidden p-14">
+            <div class="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-indigo-600/20 blur-[120px] rounded-full">
+            </div>
+            <div class="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] bg-violet-700/20 blur-[120px] rounded-full">
+            </div>
+            <div class="absolute inset-0 opacity-[0.04]"
+                style="background-image: linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px); background-size: 40px 40px;">
+            </div>
+            <div class="relative text-center z-10">
+                <img src="img/logo.png" alt="GSCS Logo" class="w-36 h-auto mx-auto mb-10 drop-shadow-2xl">
+                <h2 class="text-white text-3xl font-normal font-heading leading-snug mb-3">Field Division<br>Portal</h2>
+                <div class="h-px w-12 bg-indigo-500 mx-auto my-6 rounded-full opacity-60"></div>
+                <p class="text-slate-400 text-xs tracking-widest uppercase font-medium">Galapitiyagama Sanasa Bank</p>
+                <p class="text-slate-600 text-xs mt-8 leading-relaxed max-w-[240px] mx-auto">Secure management platform
+                    for field operations and loan intelligence.</p>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Login Form -->
+        <div class="flex-1 flex items-center justify-center bg-white p-10">
+            <div class="w-full max-w-sm animate__animated animate__fadeInRight animate__fast">
+                <!-- Mobile Logo -->
+                <div class="md:hidden text-center mb-8">
+                    <img src="img/logo.png" alt="GSCS Logo" class="w-20 h-auto mx-auto mb-3 drop-shadow-md">
+                    <p class="text-slate-500 text-xs uppercase tracking-widest">Galapitiyagama Sanasa Bank</p>
+                </div>
+
+                <div class="mb-8">
+                    <h1 class="text-3xl font-normal text-slate-800 font-heading mb-2">Welcome back</h1>
+                    <p class="text-slate-500 text-sm">Sign in to access the Field Division Portal</p>
+                </div>
+
+                <form id="login-form" class="space-y-5">
+                    <div>
+                        <label
+                            class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">Username</label>
+                        <div class="relative group">
+                            <i
+                                class="ph-bold ph-user-circle absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg group-focus-within:text-indigo-600 transition-colors"></i>
+                            <input type="text" id="login-email" required placeholder="admin"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3.5 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-800 placeholder:text-slate-300 text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label
+                            class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">Password</label>
+                        <div class="relative group">
+                            <i
+                                class="ph-bold ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg group-focus-within:text-indigo-600 transition-colors"></i>
+                            <input type="password" id="login-password" required placeholder="••••••••"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3.5 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-800 placeholder:text-slate-300 text-sm">
+                        </div>
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white py-3.5 rounded-xl font-semibold text-sm shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2 group mt-2">
+                        Sign In <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                    <p id="login-error"
+                        class="text-rose-500 text-xs font-medium text-center hidden animate__animated animate__shakeX">
+                        Authentication failed. Please verify credentials.</p>
+                </form>
+
+                <p class="text-[11px] text-slate-400 text-center mt-10 uppercase tracking-widest">Powered by Iraasoft
+                    &bull; v1.2</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-shell">
+
+        <!-- Header -->
+        <header class="app-topbar no-print">
+            <div class="topbar-brand">
+                <div class="topbar-brand-logo">
+                    <img src="img/logo.png" alt="GSCS" class="h-10 w-auto" onerror="this.style.display='none'">
+                </div>
+                <div class="flex flex-col">
+                    <h2 class="brand-title leading-none">GSCS Bank</h2>
+                    <p class="brand-subtitle mt-1">LOAN DIVISION CORE SYSTEM</p>
+                    <p class="text-[9px] text-blue-300/60 font-normal leading-tight">Powered by Iraasoft</p>
+                </div>
+            </div>
+
+            <!-- Top Navigation Menu -->
+            <nav class="top-nav">
+                <a href="#" class="nav-item active" data-target="dashboard">
+                    <i class="ph ph-squares-four"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-target="officers">
+                    <i class="ph ph-identification-card"></i>
+                    <span>Staff</span>
+                </a>
+                <a href="#" class="nav-item" data-target="fuel">
+                    <i class="ph ph-jeep"></i>
+                    <span>Fuel</span>
+                </a>
+                <a href="#" class="nav-item" data-target="savings">
+                    <i class="ph ph-chart-line-up"></i>
+                    <span>Savings</span>
+                </a>
+                <a href="#" class="nav-item" data-target="schools">
+                    <i class="ph ph-student"></i>
+                    <span>Schools</span>
+                </a>
+
+                <a href="#" class="nav-item" data-target="map">
+                    <i class="ph ph-map-trifold"></i>
+                    <span>Map</span>
+                </a>
+                <a href="#" class="nav-item" data-target="events">
+                    <i class="ph ph-calendar-star"></i>
+                    <span>Proposals</span>
+                </a>
+                <a href="#" class="nav-item" data-target="settings">
+                    <i class="ph ph-gear-six"></i>
+                    <span>Settings</span>
+                </a>
+                <div class="h-6 w-px bg-white/20 mx-2"></div>
+                <button onclick="window.logout()" class="nav-item text-rose-300 hover:text-white" title="Logout">
+                    <i class="ph ph-power"></i>
+                </button>
+            </nav>
+
+            <div class="flex items-center space-x-6">
+                <div class="time-widget hidden md:block text-right">
+                    <div id="header-date" class="brand-subtitle">Loading...</div>
+                    <div id="header-time" class="text-sm font-normal text-white/80">00:00:00</div>
+                </div>
+                <div
+                    class="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 text-white">
+                    <i class="ph-bold ph-user-circle text-2xl"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="main-wrapper">
+            <!-- Scrollable Pages Area -->
+            <main id="content-area" class="view-container custom-scrollbar">
+
+                <!-- Dashboard View -->
+                <section id="view-dashboard" class="module-view animate__animated animate__fadeIn">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-normal text-slate-800">Operational Dashboard</h2>
+                        <p class="text-slate-500 mt-1">Real-time metrics and system health monitoring</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- Stat Cards -->
+                        <div class="premium-card">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <p class="text-slate-500 text-sm font-normal">System Role</p>
+                                    <h3 class="text-xl font-normal text-slate-800 mt-1">Administrator</h3>
+                                </div>
+                                <div class="p-3 bg-blue-100 rounded-xl text-blue-600">
+                                    <i class="ph-fill ph-shield-check text-2xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-500"><span class="text-emerald-500 font-normal"><i
+                                        class="ph ph-trend-up"></i> Active</span> operations</p>
+                        </div>
+
+                        <div class="premium-card">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <p class="text-slate-500 text-sm font-normal">New Accounts (Month)</p>
+                                    <h3 class="text-3xl font-normal text-slate-800 mt-1" id="dash-accounts-total">0
+                                    </h3>
+                                </div>
+                                <div class="p-3 bg-emerald-100 rounded-xl text-emerald-600">
+                                    <i class="ph-fill ph-users-three text-2xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-500"><span class="text-emerald-500 font-normal">+12%</span>
+                                vs last
+                                month</p>
+                        </div>
+
+
+                        <div class="premium-card">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <p class="text-slate-500 text-sm font-normal">Fuel KM (This Month)</p>
+                                    <h3 class="text-3xl font-normal text-slate-800 mt-1"><span
+                                            id="dash-fuel-total">0</span>
+                                        KM</h3>
+                                </div>
+                                <div class="p-3 bg-orange-100 rounded-xl text-orange-600">
+                                    <i class="ph-fill ph-gas-pump text-2xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-500">Across all officers</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-1 gap-6">
+
+                        <!-- Active Field Officers Dashboard Widget -->
+                        <div class="premium-card flex flex-col h-[350px]">
+                            <div class="flex justify-between items-center mb-4 shrink-0">
+                                <h3 class="font-normal text-slate-800 text-lg flex items-center"><i
+                                        class="ph-fill ph-users-three text-blue-500 mr-2"></i> Field Officers</h3>
+                            </div>
+                            <form id="dash-form-add-officer" class="flex space-x-2 mb-4 shrink-0">
+                                <input type="text" id="dash-new-officer-input" required
+                                    placeholder="Add new officer name..."
+                                    class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                                <button type="submit"
+                                    class="btn-premium shadow shadow-emerald-500/30 transition-colors">Add</button>
+                            </form>
+                            <div
+                                class="flex-1 overflow-y-auto custom-scrollbar border border-slate-100 rounded-xl bg-slate-50/50">
+                                <ul id="dash-officers-list-ul" class="divide-y divide-slate-100">
+                                    <!-- Populated dynamically by officers.js -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Other views will be hidden by default and dynamically injected or shown -->
+                <section id="view-officers" class="module-view hidden">
+                    <div class="mb-6 flex justify-between items-center">
+                        <h3 class="text-2xl font-normal text-slate-800">Field Officer Management</h3>
+                        <div class="flex space-x-3">
+                            <button id="btn-new-officer-log" class="btn-premium flex items-center print-hide">
+                                <i class="ph ph-plus font-normal mr-2"></i> Add Daily Log
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Officer Tools (Print Filter) -->
+                        <div class="lg:col-span-1 space-y-6">
+                            <div class="premium-card">
+                                <h4 class="font-normal text-slate-800 mb-4 flex items-center"><i
+                                        class="ph-fill ph-printer-fill text-primary mr-2"></i> Report Generator</h4>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-normal text-slate-500 mb-1">Select Officer
+                                            for
+                                            Report</label>
+                                        <select id="officer-print-filter"
+                                            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                                            <option value="" disabled selected>Select Officer</option>
+                                            <!-- Options injected here -->
+                                        </select>
+                                    </div>
+                                    <button id="btn-print-officer-report"
+                                        class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-normal px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+                                        <i class="ph-bold ph-printer mr-2"></i> Print Officer Report
+                                    </button>
+                                    <div class="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                                        <p class="text-xs text-blue-800 leading-relaxed">Select a specific officer to
+                                            generate their professional A4 summary report.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Logs Table -->
+                        <div class="lg:col-span-2">
+                            <div class="premium-card overflow-hidden flex flex-col h-[500px]">
+                                <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-white">
+                                    <h4 class="font-normal text-slate-800">Recent Logs & Monthly Summary</h4>
+                                    <input type="month" id="officer-month-filter"
+                                        class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary text-slate-700">
+                                </div>
+                                <div class="flex-1 overflow-y-auto p-0 custom-scrollbar">
+                                    <table class="w-full text-left text-sm whitespace-nowrap">
+                                        <thead class="bg-slate-50/80 sticky top-0 backdrop-blur-sm z-10">
+                                            <tr>
+                                                <th
+                                                    class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200">
+                                                    Date</th>
+                                                <th
+                                                    class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200">
+                                                    Officer Name</th>
+                                                <th
+                                                    class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200 text-center">
+                                                    New Accounts</th>
+                                                <th
+                                                    class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200 text-left">
+                                                    Account Numbers</th>
+                                                <th
+                                                    class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200 text-center w-24 print-hide">
+                                                    Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="officer-logs-tbody" class="divide-y divide-slate-100">
+                                            <!-- Rows injected here -->
+                                        </tbody>
+                                    </table>
+                                    <div id="officer-empty-state" class="hidden p-8 text-center text-slate-500">
+                                        <i class="ph ph-folder-open text-4xl mb-2 text-slate-300"></i>
+                                        <p>No records found for the selected period.</p>
+                                    </div>
+                                </div>
+                                <div
+                                    class="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center">
+                                    <span class="text-sm font-normal text-slate-600">Total Accounts: <span
+                                            id="officers-total-acc" class="font-normal text-slate-800">0</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Modal for New Log -->
+                <div id="modal-officer-log"
+                    class="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm hidden flex-items-center justify-center animate__animated animate__fadeIn animate__faster">
+                    <div
+                        class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all m-auto mt-20">
+                        <div
+                            class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 class="font-normal text-slate-800">Add Daily Officer Log</h3>
+                            <button type="button"
+                                class="officer-modal-close text-slate-400 hover:text-slate-700 transition-colors"><i
+                                    class="ph ph-x text-lg"></i></button>
+                        </div>
+                        <form id="form-officer-log" class="p-6 space-y-4">
+                            <input type="hidden" id="log-id" value="">
+                            <div>
+                                <label class="block text-sm font-normal text-slate-600 mb-1">Date</label>
+                                <input type="date" id="log-date" required
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-normal text-slate-600 mb-1">Officer Name</label>
+                                <select id="log-officer-name" required
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary transition-colors">
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-normal text-slate-600 mb-1">New Accounts
+                                    Fetched</label>
+                                <input type="number" id="log-accounts" required min="0" placeholder="0"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-normal text-slate-600 mb-1">Account Numbers <span
+                                        class="text-xs text-slate-400 font-normal">(Comma separated)</span></label>
+                                <textarea id="log-account-numbers" rows="2" placeholder="e.g. 10452, 10453, 10454"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors custom-scrollbar"></textarea>
+                            </div>
+                            <div class="pt-4 flex space-x-3">
+                                <button type="button"
+                                    class="officer-modal-close flex-1 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-normal hover:bg-slate-50 transition-colors">Cancel</button>
+                                <button type="submit"
+                                    class="flex-1 bg-primary hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-normal shadow-lg shadow-emerald-500/30 transition-all">Save
+                                    Log</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Modal for Managing Officers -->
+                <div id="modal-manage-officers"
+                    class="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center animate__animated animate__fadeIn animate__faster">
+                    <div
+                        class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all m-auto mt-20">
+                        <div
+                            class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 class="font-normal text-slate-800">Manage Field Officers</h3>
+                            <button type="button"
+                                class="manage-officers-close text-slate-400 hover:text-slate-700 transition-colors"><i
+                                    class="ph ph-x text-lg"></i></button>
+                        </div>
+                        <div class="p-6">
+                            <form id="form-add-officer-name" class="flex space-x-2 mb-4">
+                                <input type="text" id="new-officer-name-input" required
+                                    placeholder="Enter new officer name"
+                                    class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                                <button type="submit" class="btn-premium transition-colors">Add</button>
+                            </form>
+                            <div class="max-h-60 overflow-y-auto custom-scrollbar border border-slate-100 rounded-lg">
+                                <ul id="officers-list-ul" class="divide-y divide-slate-100">
+                                    <!-- Populated dynamically -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <section id="view-fuel" class="module-view hidden">
+                    <div class="mb-6 flex justify-between items-center">
+                        <h3 class="text-2xl font-normal text-slate-800">Transport & Fuel Tracking</h3>
+                        <button id="btn-new-fuel-log" class="btn-premium flex items-center">
+                            <i class="ph ph-plus font-normal mr-2"></i> Add Route Log
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Logs Table -->
+                        <div class="premium-card overflow-hidden flex flex-col h-[600px]">
+                            <div
+                                class="p-5 border-b border-slate-100 flex flex-wrap gap-3 justify-between items-center bg-white">
+                                <h4 class="font-normal text-slate-800">Monthly Transport Logs</h4>
+                                <div class="flex flex-wrap gap-2 items-center">
+                                    <input type="month" id="fuel-month-filter"
+                                        class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary text-slate-700">
+                                    <select id="fuel-print-filter"
+                                        class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary text-slate-700">
+                                        <option value="" disabled selected>Select Officer</option>
+                                    </select>
+                                    <button id="btn-print-fuel-report"
+                                        class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-1.5 rounded-lg font-normal text-sm flex items-center transition-all">
+                                        <i class="ph ph-printer mr-2"></i> Print Report
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex-1 overflow-y-auto p-0 custom-scrollbar">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="bg-slate-50/80 sticky top-0 backdrop-blur-sm z-10">
+                                        <tr>
+                                            <th class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200">
+                                                Date</th>
+                                            <th class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200">
+                                                Officer Name</th>
+                                            <th class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200">
+                                                Vehicle No</th>
+                                            <th
+                                                class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200 w-1/3">
+                                                Route / Details</th>
+                                            <th
+                                                class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200 text-center">
+                                                Meter (Start &rarr; End)</th>
+                                            <th
+                                                class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200 text-right">
+                                                Distance</th>
+                                            <th
+                                                class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200 text-center w-24 print-hide">
+                                                Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="fuel-logs-tbody" class="divide-y divide-slate-100">
+                                        <!-- Rows injected here -->
+                                    </tbody>
+                                </table>
+                                <div id="fuel-empty-state" class="hidden p-8 text-center text-slate-500">
+                                    <i class="ph ph-folder-open text-4xl mb-2 text-slate-300"></i>
+                                    <p>No records found for the selected period.</p>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center">
+                                <span class="text-sm font-normal text-slate-600">Total KM this month: <span
+                                        class="font-normal text-orange-600 text-base"><span
+                                            id="fuel-total-summary">0.0</span>
+                                        KM</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Modal for New Fuel Log -->
+                <div id="modal-fuel-log"
+                    class="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center animate__animated animate__fadeIn animate__faster">
+                    <div
+                        class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all m-auto mt-20">
+                        <div
+                            class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 class="font-normal text-slate-800">Add Transport Log</h3>
+                            <button type="button"
+                                class="fuel-modal-close text-slate-400 hover:text-slate-700 transition-colors"><i
+                                    class="ph ph-x text-lg"></i></button>
+                        </div>
+                        <form id="form-fuel-log" class="p-6 space-y-4">
+                            <input type="hidden" id="fuel-log-id" value="">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-normal text-slate-600 mb-1">Date</label>
+                                    <input type="date" id="fuel-date" required
+                                        class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-normal text-slate-600 mb-1">Officer Name</label>
+                                    <select id="fuel-officer-name" required
+                                        class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-normal text-slate-600 mb-1">Vehicle Number</label>
+                                <input type="text" id="fuel-vehicle-no" required placeholder="e.g. BBF - 6069"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary transition-colors"
+                                    style="text-transform:uppercase">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-normal text-slate-600 mb-1">Start Meter
+                                        (KM)</label>
+                                    <input type="number" step="0.1" id="fuel-start-meter" required
+                                        class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-normal text-slate-600 mb-1">End Meter (KM)</label>
+                                    <input type="number" step="0.1" id="fuel-end-meter" required
+                                        class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary transition-colors">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-normal text-slate-600 mb-1">Route Description</label>
+                                <input type="text" id="fuel-route" required
+                                    placeholder="e.g. Head Office -> Mawanella -> Bank"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary transition-colors">
+                            </div>
+
+                            <div
+                                class="bg-orange-50 rounded-lg p-3 flex justify-between items-center border border-orange-100">
+                                <span class="text-xs font-normal text-orange-800 uppercase tracking-wide">Total
+                                    Distance</span>
+                                <span id="fuel-calc-total" class="text-xl font-normal text-orange-600">0 KM</span>
+                            </div>
+
+                            <div class="pt-2 flex space-x-3">
+                                <button type="button"
+                                    class="fuel-modal-close flex-1 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-normal hover:bg-slate-50 transition-colors">Cancel</button>
+                                <button type="submit"
+                                    class="flex-1 bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-normal shadow-lg shadow-blue-500/30 transition-all">Save
+                                    Route Log</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <section id="view-savings" class="module-view hidden">
+                    <!-- Header -->
+                    <div class="mb-6 flex flex-wrap gap-3 justify-between items-center">
+                        <h3 class="text-2xl font-normal text-slate-800">Field Savings Progress</h3>
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <select id="savings-year-filter"
+                                class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-slate-700"></select>
+                            <button id="btn-print-savings-report"
+                                class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg font-normal text-sm flex items-center transition-all">
+                                <i class="ph ph-printer mr-2"></i> Print Report
+                            </button>
+                            <button id="btn-new-savings-log" class="btn-premium flex items-center">
+                                <i class="ph ph-plus font-normal mr-2"></i> Log Collection
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Pivot Table -->
+                    <div
+                        class="bg-white/90 backdrop-blur rounded-2xl shadow-xl border border-white overflow-hidden mb-6">
+                        <div class="p-4 border-b border-slate-100 bg-white flex justify-between items-center">
+                            <h4 class="font-normal text-slate-800">Field Savings Progress <span id="savings-year-label"
+                                    class="text-primary"></span></h4>
+                            <span class="text-xs text-slate-400">GALAPITIYAGAMA SANASA COOPERATIVE SOCIETY</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm" id="savings-pivot-table">
+                                <thead id="savings-pivot-head" class="bg-slate-50"></thead>
+                                <tbody id="savings-pivot-body"></tbody>
+                                <tfoot id="savings-pivot-foot" class="bg-slate-100 font-normal"></tfoot>
+                            </table>
+                            <div id="savings-empty-state" class="hidden p-8 text-center text-slate-500">
+                                <i class="ph ph-chart-bar text-4xl mb-2 text-slate-300"></i>
+                                <p>No savings data found for this year. Click "Log Collection" to add entries.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="premium-card">
+                            <h4 class="font-normal text-slate-800 mb-4">Monthly Field Saving Total</h4>
+                            <div class="relative h-64 w-full">
+                                <canvas id="savingsMonthlyChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="premium-card">
+                            <h4 class="font-normal text-slate-800 mb-4">Officer-wise Collections</h4>
+                            <div class="relative h-64 w-full">
+                                <canvas id="savingsComparisonChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- Modal for New Savings Log -->
+                <div id="modal-savings-log"
+                    class="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center animate__animated animate__fadeIn animate__faster">
+                    <div
+                        class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all m-auto mt-20">
+                        <div
+                            class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 class="font-normal text-slate-800">Log Saving Collection</h3>
+                            <button type="button"
+                                class="savings-modal-close text-slate-400 hover:text-slate-700 transition-colors"><i
+                                    class="ph ph-x text-lg"></i></button>
+                        </div>
+                        <form id="form-savings-log" class="p-6 space-y-4">
+                            <input type="hidden" id="savings-log-id" value="">
+                            <div>
+                                <label class="block text-sm font-normal text-slate-600 mb-1">Date of Entry</label>
+                                <input type="date" id="savings-date" required
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-normal text-slate-600 mb-1">Officer Name</label>
+                                <select id="savings-officer-name" required
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-normal text-slate-600 mb-1">Target Month</label>
+                                    <input type="month" id="savings-target-month" required
+                                        class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-normal text-slate-600 mb-1">Amount (Rs.)</label>
+                                    <input type="number" step="0.01" id="savings-collection" required min="0"
+                                        placeholder="0.00"
+                                        class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary transition-colors font-normal text-purple-600">
+                                </div>
+                            </div>
+
+                            <div class="pt-4 flex space-x-3">
+                                <button type="button"
+                                    class="savings-modal-close flex-1 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-normal hover:bg-slate-50 transition-colors">Cancel</button>
+                                <button type="submit"
+                                    class="flex-1 bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-normal shadow-lg shadow-blue-500/30 transition-all">Save
+                                    Collection</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <section id="view-map" class="module-view hidden h-full flex flex-col pt-0 px-0 md:px-0">
+                    <div
+                        class="px-4 py-4 md:px-8 bg-white/50 backdrop-blur-md border-b border-slate-200/50 flex justify-between items-center z-20 shadow-sm relative sticky top-0">
+                        <h3 class="text-2xl font-normal text-slate-800">Field Routine Map</h3>
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <select id="map-filter-officer"
+                                class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-slate-700 w-48 transition-colors">
+                                <option value="All">All Officers</option>
+                            </select>
+                            <button id="btn-print-map"
+                                class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg font-normal text-sm flex items-center transition-all print-hide">
+                                <i class="ph ph-printer mr-2"></i> Print Map
+                            </button>
+                            <button id="btn-add-location"
+                                class="bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-normal shadow-lg shadow-blue-500/30 transition-all flex items-center print-hide">
+                                <i class="ph ph-map-pin-line font-normal mr-2"></i> Plot Customer
+                            </button>
+                        </div>
+                        <!-- Instruction banner -->
+                        <div id="map-instruction"
+                            class="hidden absolute left-1/2 transform -translate-x-1/2 top-4 bg-orange-500 text-white px-6 py-2 rounded-full font-normal shadow-lg shadow-orange-500/30 animate__animated animate__fadeInDown flex items-center z-50">
+                            <i class="ph ph-cursor-click text-lg mr-2"></i> Click anywhere on the map to drop a pin
+                            <button type="button"
+                                class="location-close-btn ml-4 p-1 hover:bg-orange-600 rounded-full transition-colors"><i
+                                    class="ph ph-x"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="relative flex-1 bg-slate-100 flex overflow-hidden">
+                        <!-- Map Container -->
+                        <div id="routine-map" class="w-full h-full z-10 transition-all duration-300"></div>
+
+                        <!-- Slide-in Panel for Adding Info -->
+                        <div id="panel-add-location"
+                            class="absolute top-0 right-0 h-full w-full sm:w-80 lg:w-96 bg-white shadow-2xl z-20 transform translate-x-full transition-transform duration-300 flex flex-col">
+                            <div
+                                class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                                <h3 class="font-normal text-slate-800">Customer Details</h3>
+                                <button type="button"
+                                    class="location-close-btn text-slate-400 hover:text-slate-700 transition-colors"><i
+                                        class="ph ph-x text-lg"></i></button>
+                            </div>
+                            <div class="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                                <form id="form-add-location" class="space-y-4">
+                                    <input type="hidden" id="loc-id" value="">
+                                    <div class="grid grid-cols-2 gap-3 mb-2">
+                                        <div>
+                                            <label
+                                                class="block text-[10px] font-normal text-slate-400 uppercase tracking-wider mb-1">LATITUDE</label>
+                                            <input type="text" id="loc-lat" readonly
+                                                class="w-full bg-slate-100 border-none rounded px-3 py-1.5 text-xs text-slate-500 font-mono">
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-[10px] font-normal text-slate-400 uppercase tracking-wider mb-1">LONGITUDE</label>
+                                            <input type="text" id="loc-lng" readonly
+                                                class="w-full bg-slate-100 border-none rounded px-3 py-1.5 text-xs text-slate-500 font-mono">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-normal text-slate-600 mb-1">Account No.</label>
+                                        <input type="text" id="loc-account" required placeholder="001-XXXX-YYY"
+                                            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:border-primary transition-colors">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-normal text-slate-600 mb-1">Customer / Shop
+                                            Name</label>
+                                        <input type="text" id="loc-name" required placeholder="Nimal Stores"
+                                            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-normal text-slate-600 mb-1">Substitute Route
+                                            Officer</label>
+                                        <select id="loc-officer" required
+                                            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                                            <!-- Populated dynamically -->
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-normal text-slate-600 mb-1">Visit
+                                            Frequency</label>
+                                        <select id="loc-freq" required
+                                            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors text-slate-700">
+                                            <option value="Daily">Daily</option>
+                                            <option value="Weekly">Weekly</option>
+                                            <option value="Bi-Weekly">Bi-Weekly</option>
+                                            <option value="Monthly">Monthly</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="pt-6">
+                                        <button type="submit"
+                                            class="w-full bg-primary hover:bg-blue-800 text-white px-4 py-3 rounded-lg font-normal shadow-lg shadow-blue-500/30 transition-all">Save
+                                            Location Pin</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+
+
+                <section id="view-schools" class="module-view hidden">
+                    <div class="mb-6 flex justify-between items-center">
+                        <h3 class="text-2xl font-normal text-slate-800">School Savings & Communication</h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                        <!-- Left Column: Add Student & Messaging -->
+                        <div class="lg:col-span-1 space-y-8">
+
+                            <!-- Add Student Form -->
+                            <div
+                                class="bg-white/90 backdrop-blur rounded-2xl shadow-xl border border-white overflow-hidden">
+                                <div class="p-4 border-b border-slate-100 bg-white">
+                                    <h4 class="font-normal text-slate-800 flex items-center"><i
+                                            class="ph ph-student text-primary text-xl mr-2"></i> Register Student</h4>
+                                </div>
+                                <div class="p-5">
+                                    <form id="form-school-student" class="space-y-4">
+                                        <input type="hidden" id="student-id" value="">
+                                        <div>
+                                            <label class="block text-xs font-normal text-slate-600 mb-1">School
+                                                Name</label>
+                                            <input type="text" id="student-school" required
+                                                class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-normal text-slate-600 mb-1">Student
+                                                Name</label>
+                                            <input type="text" id="student-name" required
+                                                class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label
+                                                    class="block text-xs font-normal text-slate-600 mb-1">Grade</label>
+                                                <input type="text" id="student-grade" required
+                                                    class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-normal text-slate-600 mb-1">Account
+                                                    No.</label>
+                                                <input type="text" id="student-account" required
+                                                    class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors font-mono">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-normal text-slate-600 mb-1">Parent
+                                                WhatsApp
+                                                No.</label>
+                                            <input type="tel" id="student-contact" required
+                                                class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                                        </div>
+
+                                        <div class="pt-2">
+                                            <button type="submit"
+                                                class="w-full bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-normal shadow-lg shadow-blue-500/30 transition-all text-sm">Save
+                                                Register</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Bulk Messaging Box -->
+                            <div
+                                class="bg-white/90 backdrop-blur rounded-2xl shadow-xl border border-white overflow-hidden border-t-4 border-t-green-500">
+                                <div class="p-4 border-b border-slate-100 bg-white">
+                                    <h4 class="font-normal text-slate-800 flex items-center"><i
+                                            class="ph-fill ph-chats-circle text-primary text-xl mr-2"></i>
+                                        School Communication</h4>
+                                </div>
+                                <div class="p-5">
+                                    <div class="space-y-4">
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label
+                                                    class="block text-[10px] font-normal text-slate-400 uppercase tracking-wider mb-1">Target
+                                                    School</label>
+                                                <select id="msg-school-selector"
+                                                    class="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-primary">
+                                                    <option value="All">All Schools</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label
+                                                    class="block text-[10px] font-normal text-slate-400 uppercase tracking-wider mb-1">Target
+                                                    Grade</label>
+                                                <select id="msg-grade-selector"
+                                                    class="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-primary">
+                                                    <option value="All">All Grades</option>
+                                                    <option value="1">Grade 1</option>
+                                                    <option value="2">Grade 2</option>
+                                                    <option value="3">Grade 3</option>
+                                                    <option value="4">Grade 4</option>
+                                                    <option value="5">Grade 5</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-[10px] font-normal text-slate-400 uppercase tracking-wider mb-1">Message
+                                                Method</label>
+                                            <div class="flex space-x-2">
+                                                <label class="flex-1">
+                                                    <input type="radio" name="msg-method" value="whatsapp" checked
+                                                        class="hidden peer">
+                                                    <div
+                                                        class="flex items-center justify-center p-2 rounded-lg border border-slate-200 bg-slate-50 peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 cursor-pointer transition-all">
+                                                        <i class="ph-bold ph-whatsapp-logo mr-1"></i> <span
+                                                            class="text-xs font-normal">WhatsApp</span>
+                                                    </div>
+                                                </label>
+                                                <label class="flex-1">
+                                                    <input type="radio" name="msg-method" value="sms"
+                                                        class="hidden peer">
+                                                    <div
+                                                        class="flex items-center justify-center p-2 rounded-lg border border-slate-200 bg-slate-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 cursor-pointer transition-all">
+                                                        <i class="ph-bold ph-chat-centered-text mr-1"></i> <span
+                                                            class="text-xs font-normal">Normal SMS</span>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-normal text-slate-600 mb-1">Broadcast
+                                                Message</label>
+                                            <textarea id="msg-text" rows="4"
+                                                class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors"></textarea>
+                                        </div>
+
+                                        <div>
+                                            <button id="btn-send-whatsapp" type="button"
+                                                class="w-full bg-primary hover:bg-blue-800 text-white px-4 py-2.5 rounded-lg font-normal shadow-lg shadow-blue-500/30 transition-all text-sm flex justify-center items-center">
+                                                <i class="ph-bold ph-paper-plane-right mr-2"></i> Prepare Recipients
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Right Column: Student Roster -->
+                        <div class="lg:col-span-2">
+                            <div
+                                class="bg-white/90 backdrop-blur rounded-2xl shadow-xl border border-white overflow-hidden flex flex-col h-full min-h-[600px]">
+                                <div class="p-5 border-b border-slate-100 bg-white flex justify-between items-center">
+                                    <h4 class="font-normal text-slate-800 flex items-center"><i
+                                            class="ph ph-users-three text-primary text-xl mr-2"></i> Student Roster
+                                    </h4>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="relative">
+                                            <i
+                                                class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                            <input type="text" id="filter-student-search"
+                                                placeholder="Search student..."
+                                                class="bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-1.5 text-sm focus:outline-none focus:border-primary text-slate-700 w-48 md:w-64">
+                                        </div>
+                                        <select id="filter-school-name"
+                                            class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary text-slate-700 max-w-[200px]">
+                                            <option value="">All Schools</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="flex-1 overflow-y-auto p-0 custom-scrollbar">
+                                    <table class="w-full text-left text-sm">
+                                        <thead class="bg-slate-50/80 sticky top-0 backdrop-blur-sm z-10">
+                                            <tr>
+                                                <th
+                                                    class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200">
+                                                    Student Name</th>
+                                                <th
+                                                    class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200">
+                                                    School</th>
+                                                <th
+                                                    class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200 text-center">
+                                                    Grade</th>
+                                                <th
+                                                    class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200">
+                                                    Account</th>
+                                                <th
+                                                    class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200">
+                                                    Parent WA</th>
+                                                <th
+                                                    class="px-5 py-3 text-slate-500 font-normal border-b border-slate-200 text-center w-24 print-hide">
+                                                    Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="schools-tbody" class="divide-y divide-slate-100">
+                                            <!-- Rows injected here -->
+                                        </tbody>
+                                    </table>
+                                    <div id="schools-empty-state" class="hidden p-8 text-center text-slate-500 mt-10">
+                                        <i class="ph ph-magnifying-glass text-4xl mb-2 text-slate-300"></i>
+                                        <p>No students found for this selection.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="view-events" class="module-view hidden">
+                    <div class="mb-6 flex justify-between items-center">
+                        <h3 class="text-2xl font-normal text-slate-800">Event Planning & Board Approvals</h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                        <!-- Left: Proposal Builder -->
+                        <div class="lg:col-span-1 space-y-6">
+                            <div class="premium-card">
+                                <h4 class="font-normal text-slate-800 mb-4 flex items-center"><i
+                                        class="ph ph-file-plus text-primary text-xl mr-2"></i> Draft Proposal</h4>
+                                <p class="text-xs text-slate-500 mb-4">Create new programs, events, or campaigns for
+                                    bank
+                                    approval.</p>
+
+                                <form id="form-event-proposal" class="space-y-4">
+                                    <input type="hidden" id="event-id" value="">
+                                    <div>
+                                        <label class="block text-sm font-normal text-slate-600 mb-1">Proposal
+                                            Title</label>
+                                        <input type="text" id="event-title" required
+                                            placeholder="e.g. Avurudu Pola 2026"
+                                            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-normal text-slate-600 mb-1">Proposed
+                                            Date</label>
+                                        <input type="date" id="event-date" required
+                                            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-normal text-slate-600 mb-1">Description &
+                                            Budget</label>
+                                        <textarea id="event-desc" required rows="5"
+                                            placeholder="Details about the event, expected crowd, and estimated budget..."
+                                            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors"></textarea>
+                                    </div>
+                                    <div class="pt-2">
+                                        <button type="submit"
+                                            class="w-full bg-primary hover:bg-blue-800 text-white px-4 py-2.5 rounded-lg font-normal shadow-lg shadow-blue-500/30 transition-all text-sm">Submit
+                                            to Workflow</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Right: Workflow Tracker -->
+                        <div class="lg:col-span-2">
+                            <div
+                                class="bg-white/90 backdrop-blur rounded-2xl shadow-xl border border-white overflow-hidden flex flex-col h-full min-h-[600px]">
+                                <div class="p-5 border-b border-slate-100 bg-white">
+                                    <h4 class="font-normal text-slate-800 flex items-center"><i
+                                            class="ph ph-git-commit text-primary text-xl mr-2"></i> Approval Dashboard
+                                    </h4>
+                                </div>
+                                <div class="flex-1 overflow-y-auto p-0 custom-scrollbar bg-slate-50/30">
+                                    <table class="w-full text-left text-sm table-fixed">
+                                        <thead
+                                            class="bg-slate-100/80 sticky top-0 backdrop-blur-sm z-10 border-b border-slate-200">
+                                            <tr>
+                                                <th
+                                                    class="px-5 py-3 text-slate-500 font-normal uppercase tracking-wide text-xs w-1/2">
+                                                    Proposal Details</th>
+                                                <th
+                                                    class="px-5 py-3 text-slate-500 font-normal uppercase tracking-wide text-xs text-center w-1/4">
+                                                    Status</th>
+                                                <th
+                                                    class="px-5 py-3 text-slate-500 font-normal uppercase tracking-wide text-xs text-center w-1/4 print-hide">
+                                                    Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="events-tbody" class="divide-y divide-slate-200/60">
+                                            <!-- Rows injected here -->
+                                        </tbody>
+                                    </table>
+                                    <div id="events-empty-state" class="hidden p-8 text-center text-slate-500 mt-10">
+                                        <i class="ph ph-calendar-x text-4xl mb-2 text-slate-300"></i>
+                                        <p>No proposals currently tracking in the system.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+
+
+                <section id="view-settings" class="module-view hidden max-w-4xl mx-auto">
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-normal text-slate-800">System Settings & Data Management</h3>
+                        <p class="text-slate-500 text-sm">Configure your workspace and manage local databases.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                        <!-- Security Card -->
+                        <div class="premium-card">
+                            <h4 class="font-normal text-slate-800 mb-6 flex items-center text-lg">
+                                <i class="ph-bold ph-shield-check text-purple-600 mr-2"></i> System Security
+                            </h4>
+                            <form id="settings-auth-form" class="space-y-4">
+                                <div>
+                                    <label
+                                        class="block text-xs font-normal text-slate-400 uppercase tracking-widest mb-2">Current
+                                        Password</label>
+                                    <input type="password" id="settings-old-pass" required placeholder="••••••••"
+                                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500">
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-normal text-slate-400 uppercase tracking-widest mb-2">New
+                                        Password</label>
+                                    <input type="password" id="settings-new-pass" required placeholder="New password"
+                                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500">
+                                </div>
+                                <button type="submit"
+                                    class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-normal shadow-lg shadow-purple-500/20 transition-all text-sm mt-2">Update
+                                    Credentials</button>
+                                <p id="settings-auth-msg" class="text-xs font-normal text-center hidden"></p>
+                            </form>
+                        </div>
+
+                        <!-- App Info Card -->
+                        <div class="premium-card">
+                            <h4 class="font-normal text-slate-800 mb-6 flex items-center text-lg">
+                                <i class="ph-bold ph-info text-blue-600 mr-2"></i> Application Status
+                            </h4>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center py-2 border-b border-slate-50">
+                                    <span class="text-sm text-slate-500">Core Version</span>
+                                    <span class="text-sm font-normal text-slate-800">v1.0.0</span>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-slate-50">
+                                    <span class="text-sm text-slate-500">Database Engine</span>
+                                    <span class="text-sm font-normal text-slate-800">Dexie.js v4.0</span>
+                                </div>
+                                <div class="flex justify-between items-center py-2">
+                                    <span class="text-sm text-slate-500">System Uptime</span>
+                                    <span class="text-sm font-normal text-emerald-600">Active</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                        <!-- Backup & Restore -->
+                        <div class="premium-card p-6">
+                            <div class="flex items-center mb-4 text-blue-800">
+                                <i class="ph ph-database text-2xl mr-3 font-normal"></i>
+                                <h4 class="font-normal text-lg">Data Backup & Restore</h4>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-6">Since this system runs entirely offline, it is
+                                crucial to
+                                take regular backups of your database. Download your backup files frequently.</p>
+
+                            <div class="space-y-4">
+                                <button id="btn-export-db"
+                                    class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-4 py-3 rounded-xl font-normal transition-colors flex items-center justify-center">
+                                    <i class="ph-bold ph-download-simple text-xl mr-2 text-blue-600"></i> Export
+                                    Database
+                                    (Backup)
+                                </button>
+
+                                <div class="relative">
+                                    <input type="file" id="file-import-db" accept=".json" class="hidden">
+                                    <button id="btn-import-db"
+                                        class="w-full bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 px-4 py-3 rounded-xl font-normal transition-colors flex items-center justify-center">
+                                        <i class="ph-bold ph-upload-simple text-xl mr-2 text-slate-500"></i> Restore
+                                        from
+                                        Backup
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Danger Zone -->
+                        <div class="bg-red-50/50 backdrop-blur rounded-2xl shadow-xl border border-red-100 p-6">
+                            <div class="flex items-center mb-4 text-red-700">
+                                <i class="ph ph-warning-circle text-2xl mr-3 font-normal"></i>
+                                <h4 class="font-normal text-lg">Danger Zone</h4>
+                            </div>
+                            <p class="text-xs text-red-500 mb-6">These actions are irreversible. Only proceed if you
+                                are
+                                certain. Performing a factory reset will delete all offline data.</p>
+
+                            <div class="mt-auto pt-6">
+                                <button id="btn-reset-db"
+                                    class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-xl font-normal shadow-lg shadow-red-500/20 transition-all flex items-center justify-center">
+                                    <i class="ph-bold ph-trash text-xl mr-2"></i> Factory Reset System
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Print Buffer (Hidden in UI, visible in Print) -->
+    <div id="print-report-buffer" class="hidden"></div>
+
+    <!-- Core Scripts -->
+    <script src="js/db.js"></script>
+    <script src="js/app.js"></script>
+
+    <!-- Module Scripts -->
+    <script src="js/modules/officers.js"></script>
+    <script src="js/modules/fuel.js"></script>
+    <script src="js/modules/savings.js"></script>
+    <script src="js/modules/map.js"></script>
+    <script src="js/modules/schools.js"></script>
+    <script src="js/modules/events.js"></script>
+
+    <script src="js/modules/settings.js"></script>
+    <script src="js/modules/auth.js"></script>
+    <script src="js/modules/sync.js"></script>
+    <!-- Print Report Buffer: JS modules render report HTML here before printing -->
+    <div id="print-report-buffer" class="hidden"></div>
+
+</body>
+
+</html>
