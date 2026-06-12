@@ -32,6 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (fileImport) {
         fileImport.addEventListener('change', async (e) => {
             const file = e.target.files[0];
+            const fileChosenName = document.getElementById('file-chosen-name');
+            if (fileChosenName) {
+                fileChosenName.textContent = file ? file.name : 'No file chosen';
+            }
             if (!file) return;
 
             const confirmed = await window.showConfirm(
@@ -64,6 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // reset file input
             fileImport.value = '';
+            if (fileChosenName) {
+                fileChosenName.textContent = 'No file chosen';
+            }
         });
     }
 
